@@ -10,10 +10,10 @@ import torchvision.models as models
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader
-from customdataset import customDataset
+from customdataset import MyDataset
 from timm.loss import LabelSmoothingCrossEntropy
 from adamp import AdamP
-from utils import train
+from utils import train, evaluate
 # pip install adamp
 
 def main(opt) :
@@ -23,12 +23,10 @@ def main(opt) :
     # augmentation
     train_transform = A.Compose([
         A.Resize(width=224,height=224),
-        # A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.8),
         A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.7),
         A.RandomBrightnessContrast(p=0.5),
         A.RandomShadow(p=0.5),
         A.RandomFog(p=0.4),
-        A.RandomShadow(p=0.3),
         A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ToTensorV2()
     ])
@@ -39,14 +37,13 @@ def main(opt) :
     ])
 
     # dataset
-    train_dataset = customDataset(img_path=opt.train_path,transform=train_transform)
-    val_dataset = customDataset(img_path=opt.val_path, transform=val_transform)
+    train_dataset = MyDataset(img_path=opt.train_path,transform=train_transform)
+    val_dataset = MyDataset(img_path=opt.val_path, transform=val_transform)
     # dataloader
     train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False)
 
     # model call
-    # train -> label -> 53
     net = models.__dict__["resnet50"](pretrained=True)
     num_ftrs = net.fc.in_features
     net.fc = nn.Linear(num_ftrs, 53)
@@ -62,7 +59,7 @@ def main(opt) :
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 90], gamma=0.1)
     # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
-    # model .pt save dir
+    # model.pt save dir
     save_dir = opt.save_path
     os.makedirs(save_dir, exist_ok=True)
     # train(num_epoch, model, train_loader, val_loader, criterion,
