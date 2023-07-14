@@ -2,22 +2,6 @@ import torch
 import copy
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-import matplotlib.pyplot as plt
-
-def visualize_aug(dataset, idx=0, samples=10, cols=5):
-    dataset = copy.deepcopy(dataset)
-    dataset.transform = A.Compose([
-        t for t in dataset.transform if not isinstance(t, (A.Normalize, ToTensorV2))
-    ])
-    rows = samples // cols
-    figure, ax = plt.subplots(nrows=rows, ncols=cols, figsize=(12,6))
-
-    for i in range(samples):
-        image, _ = dataset[idx]
-        ax.ravel()[i].imshow(image)
-        ax.ravel()[i].set_axis_off()
-    plt.tight_layout()
-    plt.show()
 
 def train(num_epoch, model, train_loader, val_loader, criterion,
           optimizer, scheduler, save_dir, device):
@@ -58,5 +42,24 @@ def train(num_epoch, model, train_loader, val_loader, criterion,
             print("save model in " , save_dir)
             best_loss = avrg_loss
             save_model(model, save_dir)
+
+def evaluate(model, data_loader, criterion, device):
+    model.eval()
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for images, labels in data_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            # Forward pass
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        accuracy = 100 * correct / total
+        print(f"Accuracy on test set: {accuracy:.2f}%")
 
     save_model(model, save_dir, file_name="last_resnet.pt")
