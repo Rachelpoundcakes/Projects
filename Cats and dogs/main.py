@@ -2,7 +2,6 @@ import argparse
 import copy
 import os
 
-import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch
 import torch.optim as optim
@@ -66,6 +65,7 @@ def main(opt) :
     #           optimizer, scheduler, save_dir, device)
     train(opt.epoch, net, train_loader, val_loader, criterion, optimizer,
           scheduler, save_dir, device)
+    evaluate(net, val_loader, criterion, device)
 
 def parse_opt() :
     parser = argparse.ArgumentParser()
