@@ -9,7 +9,7 @@ import torchvision.models as models
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader
-from customdataset import MyDataset
+from customdataset import MycustomDataset
 from timm.loss import LabelSmoothingCrossEntropy
 from adamp import AdamP
 from utils import train, evaluate
