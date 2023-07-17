@@ -1,7 +1,6 @@
 import argparse
 import copy
 import os
-
 import torch.nn as nn
 import torch
 import torch.optim as optim
@@ -13,13 +12,12 @@ from customdataset import MycustomDataset
 from timm.loss import LabelSmoothingCrossEntropy
 from adamp import AdamP
 from utils import train, evaluate
-# pip install adamp
 
 def main(opt) :
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # augmentation
+    # Augmentation 적용
     train_transform = A.Compose([
         A.Resize(width=224,height=224),
         A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.7),
@@ -35,20 +33,20 @@ def main(opt) :
         ToTensorV2()
     ])
 
-    # dataset
+    # 데이터셋 및 데이터로더 생성
     train_dataset = MyDataset(img_path=opt.train_path,transform=train_transform)
     val_dataset = MyDataset(img_path=opt.val_path, transform=val_transform)
     # dataloader
     train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False)
 
-    # model call
-    net = models.__dict__["resnet50"](pretrained=True)
-    num_ftrs = net.fc.in_features
-    net.fc = nn.Linear(num_ftrs, 53)
-    net.to(device)
+    # 모델 생성 (ResNet-50)
+    model = models.resnet50(pretrained=True)
+    num_features = model.fc.in_features
+    model.fc = nn.Linear(num_features, 2)  # 클래스 개수에 맞게 마지막 레이어 수정
+    model.to(device)
 
-    # loss
+    # 손실 함수, 옵티마이저 설정
     criterion = LabelSmoothingCrossEntropy()
     criterion = criterion.to(device)
     # optimizer
