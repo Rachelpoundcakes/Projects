@@ -1,65 +1,80 @@
+import os
 import torch
-import copy
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
 
-def train(num_epoch, model, train_loader, val_loader, criterion,
-          optimizer, scheduler, save_dir, device):
-    print("Strart training.........")
-    running_loss = 0.0
+def train(num_epoch, model, train_loader, val_loader, criterion, optimizer,
+          save_dir, device):
+    print("Start training.....")
     total = 0
     best_loss = 9999
-    for epoch in range(num_epoch+1) :
-        for i, (imgs, labels) in enumerate(train_loader):
-            img, label = imgs.to(device) , labels.to(device)
 
+    for epoch in range(num_epoch) :
+        for i , (imgs, labels) in enumerate(train_loader) :
+            print("Start training........")
+            img , label = imgs.to(device) , labels.to(device)
             output = model(img)
             loss = criterion(output, label)
-            scheduler.step()
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
+            _,argmax = torch.max(output, 1)
+            acc = (label == argmax).float().mean()
 
-            _, argmax = torch.max(output, 1)
-            acc = (label==argmax).float().mean()
             total += label.size(0)
 
-            if (i + 1 ) % 10 == 0:
-                print("Epoch [{}/{}] Step[{}/{}] Loss :{:.4f} Acc : {:.2f}%".format(
-                    epoch + 1 , num_epoch, i+1, len(train_loader), loss.item(),
-                    acc.item() * 100
+            if (i+1) % 10 == 0 :
+                print("Epoch>> [{}/{}], step>> [{}/{}], Loss>> {:.4f}, acc>> "
+                      "{:.2f}%".format(
+                        epoch + 1,
+                        num_epoch,
+                        i + 1,
+                        len(train_loader),
+                        loss.item(),
+                        acc.item() * 100
                 ))
-
-
-        avrg_loss, val_acc = validation(epoch, model, val_loader, criterion,
-                                        device)
-        # if epoch % 10 == 0:
-        #     save_model(model, save_dir, file_naem=f"{epoch}.pt")
+        avrg_loss, val_acc = validation(model, val_loader, criterion, device)
         if avrg_loss < best_loss :
-            print(f"Best save at epoch >> {epoch}")
-            print("save model in " , save_dir)
+            print("Best pt save")
             best_loss = avrg_loss
             save_model(model, save_dir)
 
-def evaluate(model, data_loader, criterion, device):
+    save_model(model, save_dir, file_name="last.pt")
+
+def validation(model, val_loader, criterion, device) :
+    print("Validation........")
     model.eval()
-    with torch.no_grad():
-        correct = 0
+    with torch.no_grad() :
         total = 0
-        for images, labels in data_loader:
-            images = images.to(device)
-            labels = labels.to(device)
+        correct = 0
+        total_loss = 0
+        cnt = 0
+        batch_loss = 0
 
-            # Forward pass
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
+        for i, (imgs, labels) in enumerate(val_loader) :
+            imgs, labels = imgs.to(device) , labels.to(device)
+            outputs = model(imgs)
+            loss = criterion(outputs, labels)
+            batch_loss += loss.item()
 
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            total += imgs.size(0)
+            _, argmax = torch.max(outputs, 1)
+            correct += (labels == argmax).sum().item()
+            total_loss += loss.item()
+            cnt += 1
 
-        accuracy = 100 * correct / total
-        print(f"Accuracy on test set: {accuracy:.2f}%")
+    avrg_loss = total_loss / cnt
+    val_acc = (correct / total * 100)
+    print("Acc >> {:.2f} Average loss >> {:.4f}".format(
+        val_acc,
+        avrg_loss
+    ))
 
-    save_model(model, save_dir, file_name="last_resnet.pt")
+    model.train()
+
+    return avrg_loss, val_acc
+
+
+def save_model(model, save_dir, file_name ="best.pt"):
+    output_path = os.path.join(save_dir, file_name)
+    torch.save(model.state_dict(), output_path)
