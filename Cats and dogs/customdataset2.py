@@ -1,5 +1,3 @@
-# 커스텀데이터셋 기본 뼈대
-
 from torch.utils.data.dataset import Dataset
 from torchvision import transforms
 label_dic = {"cat": 0, "dog": 1}
