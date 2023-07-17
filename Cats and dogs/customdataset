@@ -30,6 +30,8 @@ class MycustomDataset(Dataset):
         label_temp = image_path.split("/")
         # ['.', 'dataset', 'train', 'cat', 'cat.2718.jpg']
         label = label_dic[label_temp[3]]
+
+        # augmentation  적용 후
         if self.transform is not None:
           img = self.transforms(img)
 
