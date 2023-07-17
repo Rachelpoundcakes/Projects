@@ -34,8 +34,8 @@ def main(opt) :
     ])
 
     # 데이터셋 및 데이터로더 생성
-    train_dataset = MyDataset(img_path=opt.train_path,transform=train_transform)
-    val_dataset = MyDataset(img_path=opt.val_path, transform=val_transform)
+    train_dataset = MycustomDataset(img_path=opt.train_path,transform=train_transform)
+    val_dataset = MycustomDataset(img_path=opt.val_path, transform=val_transform)
     # dataloader
     train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False)
