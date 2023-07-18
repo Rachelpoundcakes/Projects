@@ -1,18 +1,12 @@
 import os
 import sys
-
 import pandas as pd
-
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-
 from torchvision import models
-
 from timm.loss import LabelSmoothingCrossEntropy
-
 from tqdm import tqdm
-
 from custom_dataset import MyCustomData
 from train_to_test_utils import set_augmentations, train, test
 from timm.data import resolve_data_config
@@ -31,21 +25,21 @@ dataset_path = os.path.join('./dataset')
 
 train_dataset = MyCustomData(dataset_path, task='train', transforms=train_transforms)
 valid_dataset = MyCustomData(dataset_path, task='val', transforms=valid_transforms)
-# test_dataset = CustomDataset(dataset_path, task='test', transforms=valid_transforms)
+test_dataset = CustomDataset(dataset_path, task='test', transforms=valid_transforms)
 
 # Set DataLoader
 train_loader = DataLoader(train_dataset, batch_size=40, shuffle=True, num_workers=4, pin_memory=True)
 valid_loader = DataLoader(valid_dataset, batch_size=40, shuffle=False, num_workers=4, pin_memory=True)
-# test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4, pin_memory=True)
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4, pin_memory=True)
 # print(len(train_dataset), '##', len(train_loader))
 # exit()
 
-# Call model
+Call model
 
-# label_quantity = 10
-# model = models.efficientnet_b5(weights='EfficientNet_B5_Weights.DEFAULT')
-# model.classifier[1] = nn.Linear(in_features=2048, out_features=label_quantity)
-# model.to(device)
+label_quantity = 10
+model = models.efficientnet_b5(weights='EfficientNet_B5_Weights.DEFAULT')
+model.classifier[1] = nn.Linear(in_features=2048, out_features=label_quantity)
+model.to(device)
 
 # print(model._get_name())
 # exit()
@@ -68,4 +62,4 @@ if __name__ == '__main__':
     # Save last.pt
     torch.save(model.state_dict(), './last.pt')
 
-    # test(test_loader, device, label_quantity)
+    test(test_loader, device, label_quantity)
