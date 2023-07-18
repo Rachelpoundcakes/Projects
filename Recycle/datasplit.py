@@ -57,7 +57,7 @@ def make_square_image(image_path):
     if 224 > x and 224 > y:
         x, y = 224, 224
     
-    square_image = np.zeros((x, y, channels), np.uint8)
+    square_image = np.zeros((x, y, channels), np.uint8) # 검정색 이미지 생성
     square_image[int((y - height) / 2):int(y - (y - height) / 2), 
                 int((x - width) / 2):int(x - (x - width) / 2)] = origin_image
     
