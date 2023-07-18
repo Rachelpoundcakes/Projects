@@ -1,9 +1,7 @@
 import os
 import glob
-
 import numpy as np
 import cv2
-
 from torch.utils.data import Dataset
 
 data_path = os.path.join('./', 'dataset')
@@ -32,7 +30,6 @@ class MyCustomData(Dataset):
     def __len__(self):
         return len(self.image_path_list)
 
-data_path = os.path.join('./', 'dataset')
 test = MyCustomData(data_path, 'train')
 for i in test:
     pass
