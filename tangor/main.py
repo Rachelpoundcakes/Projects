@@ -2,6 +2,7 @@ from customdataset import custom_dataset
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader
+from torchvision import medels
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available else "cpu")
@@ -31,6 +32,9 @@ model = models.resnet50(pretrained=True)
 num_classes = len(train_dataset.label_dict)
 model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 model.to(device)
+
+# 모델 저장 경로
+model_path = "./saved_models/resnet50_model.pt"
 
 # 손실 함수 정의
 criterion = torch.nn.CrossEntropyLoss()
@@ -68,6 +72,9 @@ for epoch in range(num_epochs):
             correct += (predicted == labels).sum().item()
             loss = criterion(outputs, labels)
             val_loss += loss.item()
+    
+    # 모델 저장
+    torch.save(model.state_dict(), model_path)
 
     # 결과 출력
     print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {loss.item():.4f}, Val Loss: {val_loss/len(val_loader):.4f}, Val Acc: {(correct/total)*100:.2f}%")
